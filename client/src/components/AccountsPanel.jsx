@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAccounts } from '../api/client.js';
-import { Landmark, AlertCircle, CheckCircle2, User } from 'lucide-react';
+import { Landmark, AlertCircle, User } from 'lucide-react';
 
 export default function AccountsPanel({ onSelectRecipient }) {
   const [accounts, setAccounts] = useState([]);

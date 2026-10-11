@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Shield, AlertTriangle, ShieldCheck, ShieldAlert, FileText } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export default function SecurityLog({ entries, onClear }) {
   if (!entries || entries.length === 0) {
@@ -38,18 +38,17 @@ export default function SecurityLog({ entries, onClear }) {
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ width: 100 }}>Time</th>
-              <th style={{ width: 110 }}>Decision</th>
-              <th style={{ width: 100 }}>Risk Level</th>
-              <th style={{ width: 160 }}>Threat Category</th>
-              <th>Request Summary</th>
+              <th style={{ width: 100 }}>TIMESTAMP</th>
+              <th style={{ width: 110 }}>DECISION</th>
+              <th style={{ width: 100 }}>RISK LEVEL</th>
+              <th style={{ width: 160 }}>THREAT SIGNATURE</th>
+              <th>PAYLOAD PREVIEW</th>
             </tr>
           </thead>
           <tbody>
             {entries.map((entry, idx) => {
               const isApprove = entry.decision === 'APPROVE';
               const isBlock = entry.decision === 'BLOCK';
-              const isReview = entry.decision === 'REVIEW';
               const statusClass = isApprove ? 'approve' : isBlock ? 'block' : 'review';
               const riskClass = (entry.risk_level || 'low').toLowerCase();
 

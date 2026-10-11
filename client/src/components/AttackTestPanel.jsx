@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ATTACK_SCENARIOS } from '../data/scenarios.js';
 import { analyzeRequest } from '../api/client.js';
-import { Play, CheckCircle2, XCircle, AlertTriangle, Shield, Check, Flame, SlidersHorizontal } from 'lucide-react';
+import { Play, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function AttackTestPanel({ onResult, onLoadToForm }) {
   const [results, setResults] = useState({});
@@ -119,13 +119,13 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ width: 170 }}>Scenario</th>
-              <th style={{ width: 90 }}>Type</th>
-              <th style={{ width: 95 }}>Expected</th>
-              <th style={{ width: 95 }}>Actual</th>
-              <th style={{ width: 130 }}>Ledger Side Effect</th>
-              <th>Request Text</th>
-              <th style={{ width: 130, textAlign: 'right' }}>Actions</th>
+              <th style={{ width: 170 }}>SCENARIO ID</th>
+              <th style={{ width: 90 }}>TYPE</th>
+              <th style={{ width: 95 }}>EXPECTED</th>
+              <th style={{ width: 95 }}>ACTUAL</th>
+              <th style={{ width: 130 }}>LEDGER SIDE EFFECT</th>
+              <th>REQUEST TEXT</th>
+              <th style={{ width: 130, textAlign: 'right' }}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -133,29 +133,31 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
               const res = results[scenario.id];
               const isRunning = running === scenario.id;
               const isPass = res?.status === 'pass';
-              const isFail = res?.status === 'fail';
 
               return (
-                <tr key={scenario.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.82rem' }}>
-                      {scenario.label}
+                <tr key={scenario.id} className="scan-effect">
+                  <td style={{ verticalAlign: 'top', paddingTop: '14px', paddingBottom: '14px' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.84rem', lineHeight: 1.5, marginBottom: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontSize: '0.68rem', marginRight: 8, padding: '3px 6px', background: 'rgba(14, 165, 233, 0.15)', borderRadius: '3px', border: '1px solid rgba(14, 165, 233, 0.3)', letterSpacing: '0.05em', display: 'inline-block', verticalAlign: 'middle' }}>
+                        ATK-{String(scenario.scenarioNumber).padStart(3, '0')}
+                      </span>
+                      <span style={{ display: 'inline-block', verticalAlign: 'middle' }}>{scenario.label}</span>
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                       {scenario.description}
                     </div>
                   </td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     <span className={`risk-tag ${scenario.type === 'benign' ? 'low' : scenario.type === 'malicious' ? 'critical' : 'medium'}`} style={{ fontSize: '0.68rem' }}>
                       {scenario.type}
                     </span>
                   </td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     <span className={`status-tag ${scenario.expectedVerdict.toLowerCase()}`} style={{ fontSize: '0.68rem' }}>
                       {scenario.expectedVerdict}
                     </span>
                   </td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     {isRunning ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--accent-primary)' }}>
                         <div className="spin-indicator" style={{ width: 12, height: 12 }} /> Testing
@@ -169,7 +171,7 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Untested</span>
                     )}
                   </td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     {res ? (
                       <span style={{ fontSize: '0.72rem', color: 'var(--emerald-text)', fontFamily: 'var(--font-mono)' }}>
                         0 ledger mutation
@@ -178,10 +180,10 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>—</span>
                     )}
                   </td>
-                  <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                  <td style={{ maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     {scenario.input.request}
                   </td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right', verticalAlign: 'middle', paddingTop: '14px', paddingBottom: '14px' }}>
                     <div style={{ display: 'inline-flex', gap: 6 }}>
                       {onLoadToForm && (
                         <button
@@ -189,7 +191,7 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
                           className="btn-secondary"
                           onClick={() => onLoadToForm(scenario.input)}
                           title="Load parameters into Request Analyzer"
-                          style={{ fontSize: '0.72rem', padding: '4px 8px' }}
+                          style={{ fontSize: '0.72rem', padding: '5px 10px' }}
                         >
                           Load
                         </button>
@@ -199,7 +201,7 @@ export default function AttackTestPanel({ onResult, onLoadToForm }) {
                         className="btn-secondary"
                         onClick={() => runScenario(scenario)}
                         disabled={isRunning || runningAll}
-                        style={{ fontSize: '0.72rem', padding: '4px 8px' }}
+                        style={{ fontSize: '0.72rem', padding: '5px 10px' }}
                       >
                         {isRunning ? <div className="spin-indicator" style={{ width: 10, height: 10 }} /> : 'Run'}
                       </button>

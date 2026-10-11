@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getTransactions } from '../api/client.js';
-import { RefreshCw, ArrowUpRight, CheckCircle2, ShieldCheck, Inbox } from 'lucide-react';
+import { RefreshCw, CheckCircle2, Inbox } from 'lucide-react';
 
 export default function TransactionsPanel({ refreshTrigger }) {
   const [transactions, setTransactions] = useState([]);

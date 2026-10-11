@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  CheckCircle, 
-  AlertTriangle, 
-  ShieldAlert, 
-  Copy, 
-  Check, 
-  ShieldCheck, 
-  CornerDownRight, 
-  FileText, 
-  Lock 
+import {
+  CheckCircle,
+  AlertTriangle,
+  ShieldAlert,
+  Copy,
+  Check,
+  FileText,
+  Lock
 } from 'lucide-react';
 
 export default function VerdictPanel({ result, loading }) {
@@ -61,7 +59,7 @@ export default function VerdictPanel({ result, loading }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Top Banner Decision Card */}
-      <div style={{
+      <div className={`scan-effect ${isBlock ? 'scan-effect-risk' : isReview ? 'scan-effect-warning' : ''}`} style={{
         background: isApprove ? 'var(--emerald-bg)' : isBlock ? 'var(--rose-bg)' : 'var(--amber-bg)',
         border: `1px solid ${isApprove ? 'var(--emerald-border)' : isBlock ? 'var(--rose-border)' : 'var(--amber-border)'}`,
         borderRadius: 'var(--radius-md)',
@@ -125,8 +123,8 @@ export default function VerdictPanel({ result, loading }) {
         flexDirection: 'column',
         gap: 12
       }}>
-        <div style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-          Security Analysis & Rationale
+        <div style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          PAYLOAD INSPECTION & ANALYSIS
         </div>
         <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.6 }}>
           {result.rationale || 'Firewall completed multi-stage deterministic rules check.'}
@@ -141,21 +139,21 @@ export default function VerdictPanel({ result, loading }) {
           borderTop: '1px solid var(--border-subtle)'
         }}>
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Threat Category</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>THREAT SIGNATURE</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: threatCategory === 'NONE' ? 'var(--emerald-text)' : 'var(--rose-text)', marginTop: 2 }}>
               {threatCategory}
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Firewall Mode</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>DEFENSE MODE</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
               {result.mode || 'Deterministic Engine'}
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Review Required</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>REVIEW STATUS</div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: result.requires_review ? 'var(--amber-text)' : 'var(--text-muted)', marginTop: 2 }}>
               {result.requires_review ? 'Yes (Mandatory)' : 'No (Automated)'}
             </div>
@@ -163,7 +161,7 @@ export default function VerdictPanel({ result, loading }) {
 
           {result.benign_exception_applied && (
             <div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Context Guard</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>CONTEXT GUARD</div>
               <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--emerald-text)', marginTop: 2 }}>
                 Benign Exception Applied
               </div>
