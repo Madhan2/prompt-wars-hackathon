@@ -1,3 +1,6 @@
+<img width="700" height="700" alt="c9debe13-1e36-4045-b392-8c4e31a0a354" src="https://github.com/user-attachments/assets/117f3ca6-503a-4454-8dcf-14da3bcbe3c7" />
+
+
 # BankSim — Banking AI Security Firewall & Transaction Protection
 
 > **Enterprise AI Security Firewall** — Blue-team defensive intelligence system engineered to protect banking operations, transaction processors, and customer-facing financial assistants from prompt injection, jailbreaks, policy overrides, malicious payment memos, token obfuscation, and data exfiltration.
