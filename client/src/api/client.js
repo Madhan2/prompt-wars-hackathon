@@ -1,4 +1,11 @@
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Base URL for the API:
+//  - VITE_API_URL, if set (e.g. a separately hosted backend)
+//  - local dev (`npm run dev`): the local Express server on :3001
+//  - production build: same origin ('' → relative /api/...), which is the
+//    Vercel serverless function deployed together with this client
+export const API =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? 'http://localhost:3001' : '');
 
 export async function analyzeRequest(payload) {
   const res = await fetch(`${API}/api/analyze`, {

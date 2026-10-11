@@ -1,0 +1,116 @@
+/**
+ * BankSim — Defensive AI Firewall for Banking
+ * Express application (no listen call), shared by:
+ *   - src/index.js          → local dev / traditional hosting (app.listen)
+ *   - client/api/index.js   → Vercel serverless function
+ */
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
+import { errorHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/requestLogger.js';
+import analyzeRouter from './routes/analyze.js';
+import transactionsRouter from './routes/transactions.js';
+import accountsRouter from './routes/accounts.js';
+import healthRouter from './routes/health.js';
+
+const app = express();
+
+// Behind Vercel / reverse proxies, trust the first hop so rate limiting
+// and request logging see the real client IP from X-Forwarded-For.
+app.set('trust proxy', 1);
+
+// ─── Security Headers ─────────────────────────────────────────────────────────
+app.use(helmet());
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// When the client and API are deployed together (same origin) CORS is not
+// involved at all. These origins only matter for local dev or a split deploy.
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'https://localhost:5173',
+  'https://localhost:5174',
+  'https://localhost:5175',
+  'https://localhost:5176',
+];
+if (process.env.CORS_ORIGIN) {
+  allowedOrigins.push(process.env.CORS_ORIGIN);
+}
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // allow exact match or localhost with any port (http or https)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    if (/^https?:\/\/localhost:\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    // reject all other origins
+    return callback(null, false);
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400, // 24 hours for preflight cache
+}));
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+const limiter = rateLimit({
+  windowMs: 60 * 1000,   // 1 minute
+  max: 60,               // 60 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please slow down.' },
+});
+app.use(limiter);
+
+// ─── Body Parsing (max 16 KB — defence against body-size attacks) ─────────────
+app.use(express.json({ limit: '16kb' }));
+app.use(express.urlencoded({ extended: false, limit: '16kb' }));
+
+// ─── Request Logging ──────────────────────────────────────────────────────────
+app.use(requestLogger);
+
+// ─── Root & Health Direct ──────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'BankSim API Server',
+    endpoints: {
+      health: '/api/health',
+      analyze: '/api/analyze',
+      transactions: '/api/transactions',
+      accounts: '/api/accounts'
+    }
+  });
+});
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+app.use('/api/analyze', analyzeRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/accounts', accountsRouter);
+app.use('/api/health', healthRouter);
+
+// ─── 404 ──────────────────────────────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// ─── Global Error Handler ─────────────────────────────────────────────────────
+app.use(errorHandler);
+
+export default app;

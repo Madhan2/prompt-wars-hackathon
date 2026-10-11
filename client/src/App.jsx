@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './index.css';
-import { analyzeRequest, executeTransfer, getHealth, getAccounts, getTransactions } from './api/client.js';
+import { API, analyzeRequest, executeTransfer, getHealth, getAccounts, getTransactions } from './api/client.js';
 import VerdictPanel from './components/VerdictPanel.jsx';
 import SecurityLog from './components/SecurityLog.jsx';
 import AttackTestPanel from './components/AttackTestPanel.jsx';
@@ -698,7 +698,7 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)' }}>
                     <div>
                       <div style={{ fontSize: '0.84rem', fontWeight: 600 }}>Backend Firewall Service</div>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>http://localhost:3001/api</div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{API || window.location.origin}/api</div>
                     </div>
                     <span className={`status-tag ${serverOnline ? 'approve' : 'block'}`}>
                       {serverOnline ? 'Connected' : 'Offline'}
