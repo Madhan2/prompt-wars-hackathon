@@ -26,6 +26,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
+  'http://localhost:3001',
   'http://localhost:3002',
 ];
 if (process.env.CORS_ORIGIN) {
@@ -90,7 +91,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`[BankSim] Server listening on http://localhost:${PORT}`);
   console.log(`[BankSim] Environment: ${process.env.NODE_ENV || 'development'}`);
 });
