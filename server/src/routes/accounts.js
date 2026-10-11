@@ -32,7 +32,7 @@ router.get('/demo', (req, res) => {
 router.get('/:accountId/balance', (req, res) => {
   const { accountId } = req.params;
   if (!/^ACC\d{3}$/i.test(accountId)) {
-    return res.status(400).json({ error: 'Invalid account ID format. Expected format: ACC001–ACC004.' });
+    return res.status(400).json({ error: 'Invalid account ID format. Expected format: ACC001–ACC005.' });
   }
   const data = getBalance(accountId.toUpperCase());
   if (!data) {

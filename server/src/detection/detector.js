@@ -70,8 +70,8 @@ export function normalizeText(raw) {
 
 const INJECTION_PATTERNS = [
   // Classic injection starters
-  /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?|constraints?)/i,
-  /disregard\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?)/i,
+  /ignore\s+(all\s+)?(?:previous\s+|prior\s+|above\s+|earlier\s+)?(instructions?|prompts?|rules?|constraints?|filters?|directives?)/i,
+  /disregard\s+(all\s+)?(?:previous\s+|prior\s+|above\s+|earlier\s+)?(instructions?|prompts?|rules?|constraints?|filters?|directives?)/i,
   /forget\s+(everything|all|prior|previous)\s*(you|instructions?|rules?)?/i,
   /new\s+(instruction|directive|command|order|rule|task)s?[:;]/i,
   /\[SYSTEM\]/i,
@@ -141,8 +141,8 @@ const DATA_EXFIL_PATTERNS = [
   /what\s+(are|is)\s+(your|the)\s+(system\s+prompt|instructions|internal|secret)/i,
   /list\s+(all\s+)?(account|customer|user)\s+(numbers?|data|records?|details?)/i,
   /access\s+(all\s+|every\s+)?(account|customer|user|internal)/i,
-  /dump\s+(database|data|records?|accounts?)/i,
-  /export\s+(all\s+)?(data|records?|accounts?|customers?)/i,
+  /(?:dump|export|leak|extract)\s+(?:all\s+)?(?:customer\s+|user\s+|account\s+)?(?:database|data|records?|accounts?|pii|credentials?)/i,
+  /\bPII\b/,
   /send\s+(account|personal|private|confidential)\s+(data|information|details?|records?)/i,
   /transfer\s+.*\s+to\s+.*external.*server/i,
   /exfiltrat/i,
@@ -155,7 +155,6 @@ const OBFUSCATION_PATTERNS = [
   // l33t speak patterns for "ignore", "jailbreak", etc.
   /1gn[o0]r[e3]/i,
   /j[a4][1i]lbr[e3][a4]k/i,
-  // Note: l33t "system prompt" pattern removed — too many false positives on real English
   // Character spacing: i g n o r e
   /i\s+g\s+n\s+o\s+r\s+e/i,
   /j\s+a\s+i\s+l\s+b\s+r\s+e\s+a\s+k/i,
@@ -173,14 +172,13 @@ const OBFUSCATION_PATTERNS = [
 
 const AMBIGUITY_PATTERNS = [
   // Conflicting instructions in a single message
-  /transfer\s+.+\s+(and\s+also\s+)?(don'?t\s+transfer|cancel|stop|abort|hold)/i,
-  /pay\s+.+\s+(but\s+not|except|unless)/i,
+  /\b(?:transfer|send|wire|pay)\b.+?\b(?:and\s+also\s+|but\s+)?(?:don'?t\s+transfer|stop|cancel|abort|hold)\b/i,
+  /\b(?:don'?t\s+transfer|stop|cancel|abort|hold)\b.+?\b(?:transfer|send|wire|pay)\b/i,
   // Wildcard recipients
-  /transfer\s+to\s+(everyone|all\s+accounts|all\s+users|anyone)/i,
-  /send\s+money\s+to\s+(everyone|all\s+accounts|all\s+users)/i,
+  /\b(?:transfer|send|wire|pay)\b.+?\bto\s+(everyone|all\s+accounts|all\s+users|anyone)\b/i,
   // Unclear intent
-  /transfer\s+some\s+money/i,
-  /send\s+an?\s+amount/i,
+  /\btransfer\s+some\s+money\b/i,
+  /\bsend\s+an?\s+amount\b/i,
 ];
 
 // ─── Individual Detectors ─────────────────────────────────────────────────────
@@ -278,10 +276,11 @@ function inspectMemo(memo) {
  */
 const BENIGN_EXCEPTIONS = [
   // "ignore the old standing order" — "ignore" in ordinary context
-  /ignore\s+(the\s+)?(old|previous|last|pending)\s+(payment|order|transfer|transaction|invoice|charge|fee|error|mistake)/i,
-  // "transfer limit of $X" — discussing limits, not overriding them
-  /transfer\s+limit\s+(of|is|was|has\s+been)/i,
-  // "bypass the usual memo" — might look like bypass but is benign
+  /ignore\s+(?:the\s+)?(?:old\s+|previous\s+|last\s+|pending\s+)?(?:standing\s+)?(payment|order|transfer|transaction|invoice|charge|fee|error|mistake|schedule)/i,
+  // "transfer limit of $X" or inquiries about limits
+  /(?:transfer|daily|account)\s+limits?/i,
+  // inquiries about limits or rules
+  /(?:what\s+is|check|inquire|tell\s+me)\b.*(?:limit|fee|policy|balance)/i,
 ];
 
 function hasBenignException(raw) {
@@ -307,7 +306,7 @@ export function detectThreats({ request, recipient, amount, memo }) {
   const policyResult    = detectPolicyOverride(normalized);
   const exfilResult     = detectDataExfiltration(normalized);
   const obfuscResult    = detectObfuscation(normalized);
-  const ambigResult     = detectAmbiguity(normalized);
+  const ambigResult     = detectAmbiguity(normalizeText(request || ''));
   const memoResult      = inspectMemo(memo);
 
   const findings = [];
@@ -321,8 +320,8 @@ export function detectThreats({ request, recipient, amount, memo }) {
   if (memoResult.found)       findings.push({ type: THREAT.MALICIOUS_MEMO, ...memoResult });
 
   // If a benign exception applies, downgrade single low-severity findings
-  if (benignException && findings.length === 1 &&
-      [THREAT.PROMPT_INJECTION, THREAT.POLICY_OVERRIDE].includes(findings[0].type)) {
+  if (benignException && (findings.length === 0 || (findings.length === 1 &&
+      [THREAT.PROMPT_INJECTION, THREAT.POLICY_OVERRIDE, THREAT.AMBIGUOUS_REQUEST].includes(findings[0].type)))) {
     return {
       clean: true,
       threat: THREAT.NONE,

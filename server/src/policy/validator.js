@@ -12,8 +12,8 @@ const VALID_ACCOUNT_ID = /^ACC\d{3}$/i;
 
 // Known authorized recipient directory for the test environment
 const KNOWN_RECIPIENTS = [
-  'alice johnson', 'bob martinez', 'carol lee', 'dave okonkwo',
-  'acc001', 'acc002', 'acc003', 'acc004',
+  'alice johnson', 'bob martinez', 'carol lee', 'dave okonkwo', 'elena rostova',
+  'acc001', 'acc002', 'acc003', 'acc004', 'acc005',
 ];
 
 /**
@@ -25,7 +25,9 @@ export function parseNaturalLanguageTransfer(requestText) {
   }
 
   const text = requestText.trim();
-  const hasTransferIntent = /\b(transfer|send|wire|pay|remit|forward)\b/i.test(text);
+  const isInformationalInquiry = /\b(what\s+is|how\s+much|how\s+do\s+i|can\s+i|tell\s+me|explain|check\s+my|inquire)\b/i.test(text) &&
+                                 /\b(limit|balance|fee|status|policy|schedule|routing|account\s+number)\b/i.test(text);
+  const hasTransferIntent = !isInformationalInquiry && /\b(transfer|send|wire|pay|remit|forward)\b/i.test(text);
 
   let recipient = null;
   let amount = null;

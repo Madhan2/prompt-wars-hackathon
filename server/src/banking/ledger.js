@@ -48,6 +48,16 @@ const accounts = {
     dailyTransferred: 0,
     status: 'ACTIVE',
   },
+  ACC005: {
+    id: 'ACC005',
+    owner: 'Elena Rostova (Suspended)',
+    email: 'elena.rostova@banksim.local',
+    balance: 10_000.00,
+    currency: 'USD',
+    authorized: false,
+    dailyTransferred: 0,
+    status: 'SUSPENDED',
+  },
 };
 
 // ─── Transaction Log ──────────────────────────────────────────────────────────
