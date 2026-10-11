@@ -37,7 +37,7 @@ export default function VerdictPanel({ result, loading }) {
   const threatLabel = (result.threat_category || 'NONE').replace(/_/g, ' ');
 
   return (
-    <div className={`verdict-panel ${cls} fade-in`} style={{ position: 'relative' }}>
+    <div className={`verdict-panel ${cls} fade-in`} role="region" aria-live="polite" aria-label="Security Verdict" style={{ position: 'relative' }}>
       <div className="verdict-header">
         <span className="verdict-label">Security Verdict</span>
         <span style={{ fontSize: '1.2rem' }}>{decisionIcon}</span>

@@ -280,7 +280,7 @@ export default function App() {
         <main className="content-area">
 
           {/* Tab Bar */}
-          <div style={{ display: 'flex', gap: 4, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 4 }}>
+          <div role="tablist" aria-label="Dashboard views" style={{ display: 'flex', gap: 4, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 4 }}>
             {[
               { id: 'analyze', label: '🔍 Analysis & Protection' },
               { id: 'tests', label: '🧪 Adversarial Tests' },
@@ -290,6 +290,9 @@ export default function App() {
               <button
                 key={tab.id}
                 id={`tab-${tab.id}`}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`tabpanel-${tab.id}`}
                 className="btn"
                 onClick={() => setActiveTab(tab.id)}
                 style={{
@@ -310,7 +313,7 @@ export default function App() {
 
           {/* Analysis Tab */}
           {activeTab === 'analyze' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div id="tabpanel-analyze" role="tabpanel" aria-labelledby="tab-analyze" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Verdict */}
               <div className="panel">
                 <div className="panel-header">
@@ -370,7 +373,7 @@ export default function App() {
 
           {/* Attack Tests Tab */}
           {activeTab === 'tests' && (
-            <div className="panel">
+            <div id="tabpanel-tests" role="tabpanel" aria-labelledby="tab-tests" className="panel">
               <div className="panel-header">
                 <span className="panel-title">🧪 Adversarial Security Suite</span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Automated test verification against server firewall</span>
@@ -390,7 +393,7 @@ export default function App() {
 
           {/* Event Log Tab */}
           {activeTab === 'log' && (
-            <div className="panel">
+            <div id="tabpanel-log" role="tabpanel" aria-labelledby="tab-log" className="panel">
               <div className="panel-header">
                 <span className="panel-title">📋 Security Event Log</span>
                 <button
@@ -409,7 +412,7 @@ export default function App() {
 
           {/* Ledger Audit Tab */}
           {activeTab === 'transactions' && (
-            <div className="panel">
+            <div id="tabpanel-transactions" role="tabpanel" aria-labelledby="tab-transactions" className="panel">
               <div className="panel-header">
                 <span className="panel-title">🏛️ Ledger Audit History</span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Simulated account debit records</span>

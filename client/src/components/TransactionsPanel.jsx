@@ -9,7 +9,7 @@ export default function TransactionsPanel({ refreshTrigger }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  function loadTransactions() {
+  function refreshTransactions() {
     setLoading(true);
     getTransactions()
       .then(data => setTransactions(data.transactions || []))
@@ -18,7 +18,20 @@ export default function TransactionsPanel({ refreshTrigger }) {
   }
 
   useEffect(() => {
-    loadTransactions();
+    let ignore = false;
+    getTransactions()
+      .then(data => {
+        if (!ignore) setTransactions(data.transactions || []);
+      })
+      .catch(e => {
+        if (!ignore) setError(e.message);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, [refreshTrigger]);
 
   if (loading && transactions.length === 0) {
@@ -51,7 +64,7 @@ export default function TransactionsPanel({ refreshTrigger }) {
         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
           {transactions.length} transaction{transactions.length === 1 ? '' : 's'} recorded
         </span>
-        <button className="btn btn-sm" onClick={loadTransactions}>
+        <button className="btn btn-sm" onClick={refreshTransactions}>
           ↻ Refresh
         </button>
       </div>

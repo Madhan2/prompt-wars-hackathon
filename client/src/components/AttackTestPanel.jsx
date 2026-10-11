@@ -110,7 +110,7 @@ export default function AttackTestPanel({ onResult }) {
                   )}
                 </div>
               </div>
-              <div className="attack-card-desc">{scenario.label.replace(/^[✅⚠️🚨]\s*/, '')}</div>
+              <div className="attack-card-desc">{scenario.label.replace(/^(✅|⚠️|🚨)\s*/u, '')}</div>
               <div className="attack-card-desc" style={{ fontSize: '0.72rem', marginTop: 4, opacity: 0.7 }}>{scenario.description}</div>
               <div className="attack-card-expected">
                 Expected: {scenario.expectedVerdict} · {scenario.expectedRisk}
