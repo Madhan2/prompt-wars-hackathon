@@ -25,9 +25,15 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
+  'https://localhost:5173',
+  'https://localhost:5174',
+  'https://localhost:5175',
+  'https://localhost:5176',
 ];
 if (process.env.CORS_ORIGIN) {
   allowedOrigins.push(process.env.CORS_ORIGIN);
@@ -36,13 +42,23 @@ if (process.env.CORS_ORIGIN) {
 app.use(cors({
   origin: (origin, callback) => {
     // allow requests with no origin (like mobile apps, curl, server-to-server)
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+    if (!origin) {
       return callback(null, true);
     }
+    // allow exact match or localhost with any port (http or https)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    if (/^https?:\/\/localhost:\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    // reject all other origins
     return callback(null, false);
   },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400, // 24 hours for preflight cache
 }));
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
