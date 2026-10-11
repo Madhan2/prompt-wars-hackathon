@@ -1,118 +1,233 @@
-/**
- * VerdictPanel — displays the BankSim security analysis verdict
- */
+import React, { useState } from 'react';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  ShieldAlert, 
+  Copy, 
+  Check, 
+  ShieldCheck, 
+  CornerDownRight, 
+  FileText, 
+  Lock 
+} from 'lucide-react';
+
 export default function VerdictPanel({ result, loading }) {
+  const [copied, setCopied] = useState(false);
+
   if (loading) {
     return (
-      <div className="verdict-panel empty" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-        <div className="spinner" />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Evaluating request against firewall policies…</span>
+      <div className="empty-box" style={{ minHeight: 280 }}>
+        <div className="spin-indicator" style={{ width: 28, height: 28, color: 'var(--accent-primary)' }} />
+        <div className="empty-title" style={{ marginTop: 14 }}>Analyzing Banking Request</div>
+        <div className="empty-desc">
+          Evaluating input normalization, injection scans, policy bounds, and ledger authority…
+        </div>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="verdict-panel empty">
-        <div className="empty-state">
-          <div className="empty-state-icon">🛡️</div>
-          <div className="empty-state-text">
-            Submit a banking request to evaluate security and transaction policies.
-          </div>
+      <div className="empty-box" style={{ minHeight: 280 }}>
+        <div className="empty-icon-circle">
+          <Lock size={20} />
+        </div>
+        <div className="empty-title">Awaiting Request Input</div>
+        <div className="empty-desc">
+          Enter a natural-language payment request or choose a pre-configured scenario to view firewall analysis and security verdict.
         </div>
       </div>
     );
   }
 
-  const cls = result.decision?.toLowerCase() || 'empty';
-  const decisionIcon = { APPROVE: '✅', BLOCK: '🚫', REVIEW: '⚠️' }[result.decision] || '❓';
+  const decision = result.decision || 'REVIEW';
+  const riskLevel = result.risk_level || 'LOW';
+  const threatCategory = (result.threat_category || 'NONE').replace(/_/g, ' ');
 
-  const riskClass = {
-    LOW: 'badge-low',
-    MEDIUM: 'badge-medium',
-    HIGH: 'badge-high',
-    CRITICAL: 'badge-critical',
-  }[result.risk_level] || 'badge-threat';
+  const isApprove = decision === 'APPROVE';
+  const isBlock   = decision === 'BLOCK';
+  const isReview  = decision === 'REVIEW';
 
-  const threatLabel = (result.threat_category || 'NONE').replace(/_/g, ' ');
+  const statusClass = isApprove ? 'approve' : isBlock ? 'block' : 'review';
+  const riskClass = riskLevel.toLowerCase();
+
+  const handleCopy = () => {
+    const jsonStr = JSON.stringify(result, null, 2);
+    navigator.clipboard.writeText(jsonStr);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className={`verdict-panel ${cls} fade-in`} role="region" aria-live="polite" aria-label="Security Verdict" style={{ position: 'relative' }}>
-      <div className="verdict-header">
-        <span className="verdict-label">Security Verdict</span>
-        <span style={{ fontSize: '1.2rem' }}>{decisionIcon}</span>
-      </div>
-
-      <div className="verdict-decision" style={{ marginBottom: 14 }}>
-        {result.decision}
-      </div>
-
-      <div className="verdict-badges">
-        <span className={`badge ${riskClass}`}>
-          ⚡ {result.risk_level} RISK
-        </span>
-        <span className="badge badge-threat">
-          🔍 {threatLabel}
-        </span>
-        {result.requires_review && (
-          <span className="badge badge-medium">⚙️ REVIEW REQUIRED</span>
-        )}
-        {result.benign_exception_applied && (
-          <span className="badge badge-low">🟢 CONTEXT GUARD ACTIVE</span>
-        )}
-      </div>
-
-      <p className="rationale">{result.rationale}</p>
-
-      {result.validation_errors && result.validation_errors.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>
-            Validation Issues
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Top Banner Decision Card */}
+      <div style={{
+        background: isApprove ? 'var(--emerald-bg)' : isBlock ? 'var(--rose-bg)' : 'var(--amber-bg)',
+        border: `1px solid ${isApprove ? 'var(--emerald-border)' : isBlock ? 'var(--rose-border)' : 'var(--amber-border)'}`,
+        borderRadius: 'var(--radius-md)',
+        padding: '20px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 16
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 44,
+            height: 44,
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: isApprove ? 'rgba(16, 185, 129, 0.2)' : isBlock ? 'rgba(244, 63, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+            color: isApprove ? 'var(--emerald-text)' : isBlock ? 'var(--rose-text)' : 'var(--amber-text)'
+          }}>
+            {isApprove && <CheckCircle size={26} />}
+            {isBlock && <ShieldAlert size={26} />}
+            {isReview && <AlertTriangle size={26} />}
           </div>
-          {result.validation_errors.map((e, i) => (
-            <div key={i} style={{ fontSize: '0.78rem', color: 'var(--review-color)', marginBottom: 4 }}>
-              • {e}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className={`status-tag ${statusClass}`} style={{ fontSize: '0.82rem', padding: '4px 10px' }}>
+                {decision}
+              </span>
+              <span className={`risk-tag ${riskClass}`}>
+                {riskLevel} RISK
+              </span>
             </div>
-          ))}
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+              {isApprove && 'Passed all deterministic security controls and limit checks.'}
+              {isBlock && 'Critical threat detected. Transaction blocked by defensive firewall.'}
+              {isReview && 'Parameters require manual supervisor review before ledger dispatch.'}
+            </div>
+          </div>
         </div>
-      )}
 
+        <button 
+          type="button"
+          className="btn-secondary"
+          onClick={handleCopy}
+          style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+          title="Copy verdict JSON payload"
+        >
+          {copied ? <><Check size={14} color="var(--emerald-text)" /> Copied</> : <><Copy size={14} /> Copy Verdict</>}
+        </button>
+      </div>
+
+      {/* Rationale & Threat Metadata */}
+      <div style={{
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-md)',
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12
+      }}>
+        <div style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+          Security Analysis & Rationale
+        </div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+          {result.rationale || 'Firewall completed multi-stage deterministic rules check.'}
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12,
+          marginTop: 6,
+          paddingTop: 12,
+          borderTop: '1px solid var(--border-subtle)'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Threat Category</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: threatCategory === 'NONE' ? 'var(--emerald-text)' : 'var(--rose-text)', marginTop: 2 }}>
+              {threatCategory}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Firewall Mode</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>
+              {result.mode || 'Deterministic Engine'}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Review Required</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: result.requires_review ? 'var(--amber-text)' : 'var(--text-muted)', marginTop: 2 }}>
+              {result.requires_review ? 'Yes (Mandatory)' : 'No (Automated)'}
+            </div>
+          </div>
+
+          {result.benign_exception_applied && (
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Context Guard</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--emerald-text)', marginTop: 2 }}>
+                Benign Exception Applied
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Parsed Transaction Parameters */}
       {result.transaction && (
-        <div>
-          <hr className="divider" />
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>
-            Parsed Transaction Details
-          </div>
-          <div className="tx-grid">
-            <span className="tx-key">Recipient</span>
-            <span className="tx-val">{result.transaction.recipient}</span>
-            <span className="tx-key">Amount</span>
-            <span className="tx-val" style={{ color: 'var(--blue-400)' }}>
-              ${result.transaction.amount?.toLocaleString()} {result.transaction.currency}
-            </span>
-            {result.transaction.memo && (
-              <>
-                <span className="tx-key">Payment Memo</span>
-                <span className="tx-val">{result.transaction.memo}</span>
-              </>
-            )}
-            <span className="tx-key">Authorization Status</span>
-            <span className="tx-val" style={{ color: 'var(--approve-color)' }}>
-              {result.transaction.status}
+        <div style={{
+          background: 'var(--bg-card-subtle)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px 20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <FileText size={16} color="var(--accent-primary)" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>
+              Extracted Transaction Parameters
             </span>
           </div>
-          <div className="disclaimer-banner" style={{ marginTop: 14 }}>
-            {result.transaction.notice || result.transaction.note || 'Simulated Ledger: Authorization required before settlement.'}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Recipient</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>
+                {result.transaction.recipient || '—'}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Amount</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--emerald-text)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                {result.transaction.amount ? `$${Number(result.transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
+              </div>
+            </div>
+
+            <div style={{ gridColumn: 'span 2' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Payment Memo</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 2, fontStyle: result.transaction.memo ? 'normal' : 'italic' }}>
+                {result.transaction.memo || 'No memo provided'}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {result.is_balance_inquiry && result.decision === 'APPROVE' && (
-        <div style={{ marginTop: 14, padding: '12px', background: 'var(--blue-glow)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--blue-400)', marginBottom: 4 }}>Balance Inquiry Approved</div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Retrieve balance via <code style={{ color: 'var(--blue-400)' }}>GET /api/accounts</code>
+      {/* Validation Errors If Present */}
+      {result.validation_errors && result.validation_errors.length > 0 && (
+        <div style={{
+          background: 'var(--rose-bg)',
+          border: '1px solid var(--rose-border)',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 18px',
+        }}>
+          <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--rose-text)', textTransform: 'uppercase', marginBottom: 6 }}>
+            Validation Constraints Failed ({result.validation_errors.length})
           </div>
+          <ul style={{ paddingLeft: 18, fontSize: '0.8rem', color: 'var(--rose-text)', lineHeight: 1.6 }}>
+            {result.validation_errors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

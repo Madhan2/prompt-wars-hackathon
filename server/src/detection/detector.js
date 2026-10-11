@@ -132,16 +132,19 @@ const POLICY_OVERRIDE_PATTERNS = [
   /grant\s+(me\s+)?(admin|root|elevated|full)\s+access/i,
   /emergency\s+(override|bypass|exception|authorization)/i,
   /i\s+authorize\s+(you\s+to\s+)?(transfer|send|move)\s+.{0,30}\s+(without|bypass|ignore)/i,
+  /admin\s+override/i,
+  /transfer\s+.*(?:from\s+another\s+(?:customer'?s?|user'?s?|account)|from\s+someone\s+else'?s?\s+account)/i,
 ];
 
 const DATA_EXFIL_PATTERNS = [
-  /show\s+(me\s+)?(all\s+)?(account|customer|user|internal|system)\s+(numbers?|data|records?|details?|information|credentials?)/i,
-  /reveal\s+(the\s+)?(your\s+)?(system|internal|all|every|other|hidden|admin|master|secret)?\s*(prompt|instruction|password|key|token|account)/i,
+  /show\s+(me\s+)?(all\s+|every\s+)?(account|customer|user|internal|system)\s+(numbers?|data|records?|details?|information|credentials?|passwords?|history)/i,
+  /show\s+(me\s+)?every\s+customer'?s?\s+(account\s+number|password|credential|transaction\s+history)/i,
+  /reveal\s+(the\s+)?(your\s+)?(system|internal|all|every|other|hidden|admin|master|secret)?\s*(prompt|instruction|password|key|token|account|credential)/i,
   /print\s+(the\s+)?(system\s+prompt|instructions|your\s+prompt)/i,
   /what\s+(are|is)\s+(your|the)\s+(system\s+prompt|instructions|internal|secret)/i,
   /list\s+(all\s+)?(account|customer|user)\s+(numbers?|data|records?|details?)/i,
   /access\s+(all\s+|every\s+)?(account|customer|user|internal)/i,
-  /(?:dump|export|leak|extract)\s+(?:all\s+)?(?:customer\s+|user\s+|account\s+)?(?:database|data|records?|accounts?|pii|credentials?)/i,
+  /(?:dump|export|leak|extract)\s+(?:all\s+)?(?:customer\s+|user\s+|account\s+)?(?:database|data|records?|accounts?|pii|credentials?|passwords?)/i,
   /\bPII\b/,
   /send\s+(account|personal|private|confidential)\s+(data|information|details?|records?)/i,
   /transfer\s+.*\s+to\s+.*external.*server/i,
@@ -277,6 +280,8 @@ function inspectMemo(memo) {
 const BENIGN_EXCEPTIONS = [
   // "ignore the old standing order" — "ignore" in ordinary context
   /ignore\s+(?:the\s+)?(?:old\s+|previous\s+|last\s+|pending\s+)?(?:standing\s+)?(payment|order|transfer|transaction|invoice|charge|fee|error|mistake|schedule)/i,
+  // "ignore distractions and check my balance"
+  /ignore\s+(?:distractions?|background|noise|typos?|unrelated)/i,
   // "transfer limit of $X" or inquiries about limits
   /(?:transfer|daily|account)\s+limits?/i,
   // inquiries about limits or rules

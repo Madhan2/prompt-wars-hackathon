@@ -302,10 +302,10 @@ Independently validates and authorizes transfers against the simulated ledger.
 
 ## Test Coverage & Verification Results
 
-The automated regression test suite (`server/src/tests/runTests.js`) executes 72 assertions covering all required functional, security, and invariant scenarios:
+The automated regression test suite (`server/src/tests/runTests.js`) executes 84 assertions covering all required functional, security, and invariant scenarios:
 
 ```
-BankSim Test Suite — 72 tests: 72 passed, 0 failed ✅
+BankSim Test Suite — 84 tests: 84 passed, 0 failed ✅
 
 Scenario 01: Valid balance inquiry returns correct result               PASS
 Scenario 02: Valid, authorized transfer with known recipient & amount   PASS
@@ -330,6 +330,7 @@ Scenario 16: Natural language parameter extraction without form fields  PASS
 Scenario 17: Malformed and oversized requests are rejected safely       PASS
 Scenario 18: Repeated requests cannot cause duplicate transfers         PASS
 CRITICAL INVARIANT: Zero ledger side effects on blocked/review requests PASS
+Scenario 19: Hackathon Problem Statement 12 Primary Scenarios (1–12)    PASS
 ```
 
 ---

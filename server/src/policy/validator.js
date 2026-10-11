@@ -13,6 +13,7 @@ const VALID_ACCOUNT_ID = /^ACC\d{3}$/i;
 // Known authorized recipient directory for the test environment
 const KNOWN_RECIPIENTS = [
   'alice johnson', 'bob martinez', 'carol lee', 'dave okonkwo', 'elena rostova',
+  'rahul sharma', 'rahul',
   'acc001', 'acc002', 'acc003', 'acc004', 'acc005',
 ];
 
@@ -33,19 +34,21 @@ export function parseNaturalLanguageTransfer(requestText) {
   let amount = null;
   let memo = null;
 
-  // Extract amount: e.g., "$250", "$250.00", "250 USD", "250 dollars"
-  const amountMatch = text.match(/\$\s*([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i) ||
-                      text.match(/\b([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)\s*(?:dollars|usd)\b/i);
+  // Extract amount: e.g., "$250", "₹500", "₹-500", "500 INR", "250 USD", "250 dollars"
+  const amountMatch = text.match(/[₹$]\s*(-?[0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i) ||
+                      text.match(/\b(-?[0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)\s*(?:dollars|usd|inr|rupees?)\b/i);
   if (amountMatch) {
     amount = amountMatch[1].replace(/,/g, '');
   }
 
-  // Extract recipient: e.g., "to Bob Martinez", "to ACC002"
-  const toMatch = text.match(/\bto\s+([A-Za-z0-9\s]+?)(?:\s+(?:for|with|memo|regarding|ref)\b|[.,;]|$)/i);
+  // Extract recipient: e.g., "to Bob Martinez", "to Rahul Sharma", "to ACC002"
+  // Avoid misidentifying phrases like "told me to ignore"
+  const toMatch = text.match(/(?:transfer|send|wire|pay|remit|forward)\s+(?:.*?\s+)?to\s+([A-Za-z0-9\s]+?)(?:\s+(?:for|with|memo|regarding|ref)\b|[.,;]|$)/i) ||
+                  text.match(/\bto\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)(?:\s+(?:for|with|memo|regarding|ref)\b|[.,;]|$)/);
   if (toMatch) {
     const rawTo = toMatch[1].trim();
-    // Exclude generic words like "everyone", "my account"
-    if (!/^(everyone|anyone|all|all\s+accounts)$/i.test(rawTo)) {
+    // Exclude generic words like "everyone", "my account", "ignore"
+    if (!/^(everyone|anyone|all|all\s+accounts|someone|ignore|check)$/i.test(rawTo)) {
       recipient = rawTo;
     }
   }
@@ -96,7 +99,7 @@ export function validateTransfer({ request, recipient, amount, memo }) {
   if (!rawAmount) {
     errors.push('Amount is required');
   } else {
-    parsedAmount = parseFloat(rawAmount.replace(/[,$\s]/g, ''));
+    parsedAmount = parseFloat(rawAmount.replace(/[,$\s₹]|inr|usd/gi, ''));
     if (isNaN(parsedAmount)) {
       errors.push('Amount must be a valid number');
     } else if (!isFinite(parsedAmount)) {

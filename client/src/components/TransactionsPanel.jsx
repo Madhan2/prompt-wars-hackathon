@@ -1,15 +1,13 @@
-/**
- * TransactionsPanel — displays recent transactions executed in the simulated ledger
- */
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getTransactions } from '../api/client.js';
+import { RefreshCw, ArrowUpRight, CheckCircle2, ShieldCheck, Inbox } from 'lucide-react';
 
 export default function TransactionsPanel({ refreshTrigger }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  function refreshTransactions() {
+  function loadTransactions() {
     setLoading(true);
     getTransactions()
       .then(data => setTransactions(data.transactions || []))
@@ -36,87 +34,96 @@ export default function TransactionsPanel({ refreshTrigger }) {
 
   if (loading && transactions.length === 0) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-        <div className="spinner" />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 10 }}>
+        <div className="spin-indicator" style={{ width: 22, height: 22, color: 'var(--accent-primary)' }} />
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Retrieving ledger audit logs…</span>
       </div>
     );
   }
 
   if (error) {
-    return <div className="error-msg">Failed to load transactions: {error}</div>;
+    return (
+      <div className="error-banner">
+        <span>Failed to load ledger transactions: {error}</span>
+      </div>
+    );
   }
 
   if (transactions.length === 0) {
     return (
-      <div className="empty-state" style={{ padding: '32px 20px' }}>
-        <div className="empty-state-icon" style={{ fontSize: '1.8rem' }}>🏛️</div>
-        <div className="empty-state-text">No executed transactions recorded in this session yet.</div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: 6 }}>
-          Approved transfers executed via the firewall will appear here in the audit log.
+      <div className="empty-box" style={{ padding: '48px 24px' }}>
+        <div className="empty-icon-circle">
+          <Inbox size={22} />
+        </div>
+        <div className="empty-title">No Ledger Transactions Recorded</div>
+        <div className="empty-desc">
+          Only transfers cleared by the security firewall and executed against the simulated bank ledger are permanently recorded here.
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          {transactions.length} transaction{transactions.length === 1 ? '' : 's'} recorded
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          {transactions.length} verified transaction{transactions.length === 1 ? '' : 's'} recorded
         </span>
-        <button className="btn btn-sm" onClick={refreshTransactions}>
-          ↻ Refresh
+        <button 
+          type="button" 
+          className="btn-secondary" 
+          onClick={loadTransactions} 
+          disabled={loading}
+          style={{ fontSize: '0.75rem', padding: '5px 12px' }}
+        >
+          <RefreshCw size={13} className={loading ? 'spin-indicator' : ''} />
+          Refresh
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {transactions.map(tx => (
-          <div
-            key={tx.txId}
-            style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-              <div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--blue-400)', fontWeight: 600 }}>
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Tx ID</th>
+              <th>Timestamp</th>
+              <th>Sender</th>
+              <th>Recipient</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Memo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.map(tx => (
+              <tr key={tx.txId}>
+                <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
                   {tx.txId}
-                </span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginLeft: 8 }}>
-                  {new Date(tx.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-              <span
-                style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  color: 'var(--approve-color)',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              >
-                -${tx.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {tx.currency}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-              <span>
-                From: <strong>{tx.fromOwner || tx.from}</strong> → To: <strong>{tx.to}</strong>
-              </span>
-              <span style={{ color: 'var(--text-dim)', fontSize: '0.7rem' }}>
-                Status: {tx.status}
-              </span>
-            </div>
-
-            {tx.memo && (
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: 4 }}>
-                Memo: {tx.memo}
-              </div>
-            )}
-          </div>
-        ))}
+                </td>
+                <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </td>
+                <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
+                  {tx.fromOwner || tx.from}
+                </td>
+                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {tx.to}
+                </td>
+                <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--emerald-text)' }}>
+                  ${Number(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td>
+                  <span className="status-tag approve" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
+                    <CheckCircle2 size={11} /> {tx.status || 'SETTLED'}
+                  </span>
+                </td>
+                <td style={{ fontSize: '0.78rem', color: tx.memo ? 'var(--text-secondary)' : 'var(--text-dim)', fontStyle: tx.memo ? 'normal' : 'italic' }}>
+                  {tx.memo || 'No memo'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

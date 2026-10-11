@@ -22,8 +22,24 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://localhost:3002',
+];
+if (process.env.CORS_ORIGIN) {
+  allowedOrigins.push(process.env.CORS_ORIGIN);
+}
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, server-to-server)
+    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -44,6 +60,20 @@ app.use(express.urlencoded({ extended: false, limit: '16kb' }));
 
 // ─── Request Logging ──────────────────────────────────────────────────────────
 app.use(requestLogger);
+
+// ─── Root & Health Direct ──────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'BankSim API Server',
+    endpoints: {
+      health: '/api/health',
+      analyze: '/api/analyze',
+      transactions: '/api/transactions',
+      accounts: '/api/accounts'
+    }
+  });
+});
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/analyze', analyzeRouter);
